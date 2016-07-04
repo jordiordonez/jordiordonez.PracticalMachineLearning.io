@@ -10,49 +10,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache=TRUE)
 library(caret)
-```
-
-```
-## Warning: package 'caret' was built under R version 3.2.5
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## Loading required package: ggplot2
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 3.2.4
-```
-
-```r
 library(rpart)
 library(randomForest)
-```
-
-```
-## randomForest 4.6-12
-```
-
-```
-## Type rfNews() to see new features/changes/bug fixes.
-```
-
-```
-## 
-## Attaching package: 'randomForest'
-```
-
-```
-## The following object is masked from 'package:ggplot2':
-## 
-##     margin
-```
-
-```r
 training<-read.csv("./pml-training.csv")
 testing<-read.csv("./pml-testing.csv")
 ```
@@ -158,7 +117,7 @@ pred1 <- predict(fit1, test)
 ## [1] 0.004588325
 ```
 
-So the sample error rate of 0.3% allows us to think that the random forest algorithm gives a good predictor for the way we perform barbell.
+So the sample error rate lower than 0.5% allows us to think that the random forest algorithm gives a good predictor for the way we perform barbell.
 
 Choosing random forest method was motivated by the fact that we wanted to predict a categorical variable, and that it gave us a very low sample error rate.
 

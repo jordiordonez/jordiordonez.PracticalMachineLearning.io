@@ -196,7 +196,7 @@ confusionMatrix(pred2,testcv$classe)$overall</code></pre>
 <pre class="r"><code>pred1 &lt;- predict(fit1, test)
 1-sum(pred1 == test$classe) / length(pred1)</code></pre>
 <pre><code>## [1] 0.002803977</code></pre>
-<p>So the sample error rate of 0.3% allows us to think that the random forest algorithm gives a good predictor for the way we perform barbell.</p>
+<p>So the sample error rate lower than 0.5% allows us to think that the random forest algorithm gives a good predictor for the way we perform barbell.</p>
 <p>Choosing random forest method was motivated by the fact that we wanted to predict a categorical variable, and that it gave us a very low sample error rate.</p>
 </div>
 <div id="file-for-the-assignment" class="section level2">
