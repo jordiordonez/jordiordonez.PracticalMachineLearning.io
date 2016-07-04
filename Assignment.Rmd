@@ -1,0 +1,104 @@
+---
+title: "Predicting barbell quality on body accelerometer measurements"
+author: "Jordi ORDONEZ"
+date: "4 july of 2016"
+output: html_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache=TRUE)
+library(caret)
+library(rpart)
+library(randomForest)
+training<-read.csv("./pml-training.csv")
+testing<-read.csv("./pml-testing.csv")
+```
+
+## Summary
+
+This work is about building a prediction model based on body's censor movement measurements when performing barbell for detecting the way it was performed. Informatuion about the way data was collected is avalaible at <http://groupware.les.inf.puc-rio.br/har>.
+You can also download data to perform the analysis :
+
+* [The training set](http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+* [The testing set](http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+After preprocessing the data in order to allow algorithm selection on it, different prediction models will be tested with cross validation before, and when the best one will be selected, we'll give a meausre of the error applying it on the testing set.
+
+
+## Preprocessing the data
+
+After downloading our data, we make a partition of our training set to obtain a test set (80% training set, 20% for our test set) and we repartition the training set the same way for the later cross-validation :
+
+```{r data partitioning, include=TRUE}
+training<-read.csv("./pml-training.csv",na.strings=c("NA","#DIV/0!", ""))
+testing<-read.csv("./pml-testing.csv",na.strings=c("NA","#DIV/0!", ""))
+set.seed(666)
+inTrain <- createDataPartition(y=training$classe, p=0.8, list=FALSE)
+train <- training[inTrain, ]; test <- training[-inTrain, ]
+inTrain <- createDataPartition(y=train$classe, p=0.8, list=FALSE)
+train <- train[inTrain, ]; testcv <- train[-inTrain, ]
+```
+
+After running str on training we see a lot of NA's  and some variables not interesting for predicting classe such as X, user_name, time, window variables.
+We try to clean our data, the NA's, and some variables not interesting for predicting the variable classe wich contains the information on how barbell was performed, we get rid of variables that are nearzerovariance variables and those containing more than 50% of NA's:
+
+```{r data preprocess, include=TRUE}
+train<-train[,-c(1:7)]
+NZV <- nearZeroVar(train, saveMetrics=TRUE)
+train<-train[!NZV$nzv]
+nas<-apply(train,2,function(x) sum(is.na(x))/length(x)>.5)
+train<-train[!nas]
+dim(train)
+```
+
+So we reduced the number of variables from 160 to 53, we'll apply the same reduction to our test set for cross validation : our classe variable is still here! 
+
+```{r data preprocess2, include=TRUE}
+testcv<-testcv[colnames(train)]
+```
+
+
+## Comparing prediction models : Random Forest and Decision Tree.
+
+The random forest method and results on cross-validation:
+
+```{r RF, include=TRUE}
+fit1<-randomForest(classe ~. , data=train)
+pred1 <- predict(fit1, testcv)
+confusionMatrix(pred1,testcv$classe)$overall
+```
+
+The Decision Tree method and results on cross-validation:
+
+```{r DT, include=TRUE}
+fit2<-rpart(classe ~ ., data=train, method="class")
+pred2 <- predict(fit2, testcv,type="class")
+confusionMatrix(pred2,testcv$classe)$overall
+```
+
+Trough this cross validation we select the Random Forest method, wich execution time is higher, but accuracy is really good : 0.999.
+
+## Conclusion :
+
+When predicting with the selected model wich class we should have in the testing set, we obtain a rate of false predictions over all the predictions, this we'll be our expected sample error rate of the model :
+
+```{r testing, include=TRUE}
+pred1 <- predict(fit1, test)
+1-sum(pred1 == test$classe) / length(pred1)
+```
+
+So the sample error rate of 0.3% allows us to think that the random forest algorithm gives a good predictor for the way we perform barbell.
+
+Choosing random forest method was motivated by the fact that we wanted to predict a categorical variable, and that it gave us a very low sample error rate.
+
+## File for the Assignment
+
+Using our selected model we have the predictions for the testing set :
+
+```{r quizz, include=TRUE}
+pred1 <- predict(fit1, testing)
+print(pred1)
+```
+
+
